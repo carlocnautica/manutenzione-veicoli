@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Manutenzione Auto e Moto</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
+
+    <!-- Navigazione Header -->
+    <header class="bg-slate-900 text-white shadow-lg mb-8">
+        <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-blue-600 rounded-xl text-2xl">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Registro Manutenzione Auto</h1>
+                    <p class="text-slate-400 text-sm">Tieni traccia dei lavori e dei costi dei tuoi veicoli (Cloud Sync)</p>
+                </div>
+            </div>
+            <!-- Indicatore Stato Cloud -->
+            <div id="syncStatus" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin text-blue-400">}</i> Connessione Cloud...
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4">
+
+        <!-- Modulo Nuova Giornata / Interventi -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-plus text-blue-600"></i> Registra Nuova Giornata di Lavoro
+            </h2>
+
+            <form id="sessionForm" onsubmit="handleFormSubmit(event)">
+                <!-- Info Generali della Sessione/Giornata -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Data *</label>
+                        <input type="date" id="sessionDate" required class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Veicolo *</label>
+                        <input type="text" id="sessionVehicle" placeholder="es. Peugeot 208 / Vespa 125" required class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Costo Totale Giornata (€) *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">€</span>
+                            <input type="number" step="0.01" min="0" id="sessionTotalCost" placeholder="0.00" required class="w-full pl-8 bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Chilometraggio (Km)</label>
+                        <input type="number" id="sessionKm" placeholder="es. 85000" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Officina / Luogo</label>
+                        <input type="text" id="sessionWorkshop" placeholder="es. Fai-da-te / Officina Rossi" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Elenco Dettaglio Pezzi / Interventi per questa giornata -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-sm font-bold text-slate-700">Pezzi Sostituiti e Interventi Effettuati in Questa Giornata</label>
+                        <button type="button" onclick="addTaskRow()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-blue-600"></i> Aggiungi Altro Pezzo
+                        </button>
+                    </div>
+
+                    <div id="tasksContainer" class="space-y-3">
+                        <!-- Le righe degli interventi verranno inserite qui dinamicamente -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-200">
+                    <button type="submit" id="submitBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Salva Intera Giornata
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sezione Barra di Ricerca -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-slate-800">Elenco Interventi</h2>
+            <div class="relative w-full max-w-xs">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                <input type="text" id="searchInput" oninput="renderApp()" placeholder="Cerca veicolo, pezzo, data..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+        </div>
+
+        <!-- Contenitore Schede Giornate -->
+        <div id="sessionsList" class="space-y-4">
+            <!-- Inserito dinamicamente tramite JavaScript -->
+        </div>
+
+        <!-- Stato Vuoto -->
+        <div id="emptyState" class="hidden bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center">
+            <div class="text-slate-300 text-5xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
+            <h3 class="text-slate-700 font-bold text-lg">Nessun intervento trovato</h3>
+            <p class="text-slate-500 text-sm mt-1">Non ci sono registrazioni corrispondenti alla tua ricerca o il registro è vuoto.</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Modulari v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configurazione Firebase presa direttamente dalla tua console
+        const firebaseConfig = {
+            apiKey: "AIzaSyDq3CHtqec-Uzz6dGpgFAa-JNpjQWfWGUA",
+            authDomain: "manutenzione-veicoli.firebaseapp.com",
+            projectId: "manutenzione-veicoli",
+            storageBucket: "manutenzione-veicoli.appspot.com",
+            messagingSenderId: "505797362046",
+            appId: "1:505797362046:web:7472f2b722c45b0ab0732f"
+        };
+
+        // Inizializzazione Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let appData = [];
+
+        // Riferimento alla collezione "manutenzioni" su Firestore
+        const colRef = collection(db, "manutenzioni");
+
+        // Connessione in tempo reale con Firestore
+        const q = query(colRef, orderBy("date", "desc"));
+        onSnapshot(q, (snapshot) => {
+            appData = [];
+            snapshot.forEach((docSnap) => {
+                appData.push({
+                    firebaseId: docSnap.id,
+                    ...docSnap.data()
+                });
+            });
+
+            // Aggiorna indicatore di stato
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> Cloud Sincronizzato`;
+            statusEl.className = "text-xs bg-emerald-950 text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-800 flex items-center gap-2";
+
+            renderApp();
+        }, (error) => {
+            console.error("Errore di connessione Firestore: ", error);
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Errore connessione Cloud`;
+            statusEl.className = "text-xs bg-red-950 text-red-300 px-3 py-1.5 rounded-lg border border-red-800 flex items-center gap-2";
+        });
+
+        // Inizializzazione pagina
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('sessionDate').valueAsDate = new Date();
+            addTaskRow();
+        });
+
+        // Aggiunge una riga per inserire un singolo pezzo/lavoro
+        window.addTaskRow = function(name = '') {
+            const container = document.getElementById('tasksContainer');
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-2 task-row';
+
+            div.innerHTML = `
+                <input type="text" placeholder="es. Cambio Olio / Filtro Aria / Pastiglie Freni" value="${name}" required class="task-name flex-1 bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <button type="button" onclick="removeTaskRow(this)" class="p-2 text-slate-400 hover:text-red-500 rounded-lg transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        window.removeTaskRow = function(btn) {
+            const container = document.getElementById('tasksContainer');
+            if (container.querySelectorAll('.task-row').length > 1) {
+                btn.closest('.task-row').remove();
+            } else {
+                alert('La giornata deve contenere almeno un pezzo o intervento.');
+            }
+        }
+
+        // Salva l'intera giornata su Firebase Firestore
+        window.handleFormSubmit = async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Salvataggio in corso...`;
+
+            const date = document.getElementById('sessionDate').value;
+            const vehicle = document.getElementById('sessionVehicle').value;
+            const totalCost = parseFloat(document.getElementById('sessionTotalCost').value) || 0;
+            const km = document.getElementById('sessionKm').value;
+            const workshop = document.getElementById('sessionWorkshop').value;
+
+            const taskRows = document.querySelectorAll('.task-row');
+            const tasks = [];
+
+            taskRows.forEach(row => {
+                const name = row.querySelector('.task-name').value;
+                if (name.trim()) {
+                    tasks.push({ name: name.trim() });
+                }
+            });
+
+            const newSession = {
+                date: date,
+                vehicle: vehicle,
+                totalCost: totalCost,
+                km: km ? parseInt(km) : null,
+                workshop: workshop || 'N.D.',
+                tasks: tasks,
+                createdAt: Date.now()
+            };
+
+            try {
+                await addDoc(colRef, newSession);
+                // Reset form
+                document.getElementById('sessionForm').reset();
+                document.getElementById('sessionDate').valueAsDate = new Date();
+                document.getElementById('tasksContainer').innerHTML = '';
+                addTaskRow();
+            } catch (err) {
+                console.error("Errore durante il salvataggio: ", err);
+                alert("Errore durante il salvataggio su Cloud. Controlla la connessione.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salva Intera Giornata`;
+            }
+        }
+
+        // Elimina intera giornata da Firebase
+        window.deleteSession = async function(firebaseId) {
+            if (confirm("Sei sicuro di voler eliminare interamente questa giornata e tutti i suoi interventi dal Cloud?")) {
+                try {
+                    await deleteDoc(doc(db, "manutenzioni", firebaseId));
+                } catch (err) {
+                    console.error("Errore durante l'eliminazione: ", err);
+                    alert("Errore durante l'eliminazione.");
+                }
+            }
+        }
+
+        // Rendering dell'applicazione nella pagina
+        window.renderApp = function() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const listContainer = document.getElementById('sessionsList');
+            const emptyState = document.getElementById('emptyState');
+
+            listContainer.innerHTML = '';
+
+            const filteredSessions = appData.filter(session => {
+                if (!query) return true;
+
+                const matchGen = session.vehicle.toLowerCase().includes(query) ||
+                                 session.date.includes(query) ||
+                                 (session.workshop && session.workshop.toLowerCase().includes(query)) ||
+                                 (session.km && session.km.toString().includes(query)) ||
+                                 (session.totalCost && session.totalCost.toString().includes(query));
+
+                const matchTask = session.tasks && session.tasks.some(t => t.name.toLowerCase().includes(query));
+
+                return matchGen || matchTask;
+            });
+
+            if (filteredSessions.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+
+                filteredSessions.forEach(session => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:border-slate-300 transition';
+
+                    let tasksHtml = session.tasks ? session.tasks.map(task => `
+                        <div class="flex justify-between items-center py-2 px-3 bg-slate-50 rounded-lg text-sm mb-1.5 last:mb-0 border border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-wrench text-xs text-blue-500"></i>
+                                <span class="font-medium text-slate-700">${task.name}</span>
+                            </div>
+                        </div>
+                    `).join('') : '';
+
+                    card.innerHTML = `
+                        <div class="p-5">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">${session.vehicle}</span>
+                                        <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar"></i> ${session.date}</span>
+                                        ${session.km ? `<span class="text-xs text-slate-400"><i class="fa-solid fa-gauge"></i> ${session.km.toLocaleString()} Km</span>` : ''}
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-1">
+                                        Officina/Luogo: <span class="font-medium text-slate-700">${session.workshop}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-right">
+                                        <div class="text-xs text-slate-400 uppercase font-semibold">Costo Totale Speso</div>
+                                        <div class="text-lg font-bold text-emerald-600">€ ${(session.totalCost || 0).toFixed(2)}</div>
+                                    </div>
+                                    <button onclick="deleteSession('${session.firebaseId}')" title="Elimina intera giornata" class="p-2 ml-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lista Pezzi Sostituiti -->
+                            <div class="mt-3">
+                                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Pezzi Sostituiti / Interventi Effettuati:</div>
+                                ${tasksHtml}
+                            </div>
+                        </div>
+                    `;
+
+                    listContainer.appendChild(card);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
