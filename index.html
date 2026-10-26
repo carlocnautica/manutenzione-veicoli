@@ -29,7 +29,6 @@
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-16">
-
     <!-- Header Navigation -->
     <header class="bg-slate-900 text-white shadow-lg mb-8 sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -50,7 +49,6 @@
     </header>
 
     <div class="max-w-6xl mx-auto px-4 space-y-8">
-
         <!-- Form Nuova Giornata -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
@@ -103,7 +101,7 @@
             </form>
         </div>
 
-        <!-- Sezione Filtri e Ricerca Separatizzata -->
+        <!-- Sezione Filtri e Ricerca -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                 <div class="flex items-center gap-2 text-slate-800 font-bold text-lg">
@@ -113,7 +111,6 @@
                     <i class="fa-solid fa-rotate-left"></i> Azzera Filtri
                 </button>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- 1. Selezione Veicolo -->
                 <div>
@@ -126,7 +123,6 @@
                         <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-slate-400 text-xs pointer-events-none"></i>
                     </div>
                 </div>
-
                 <!-- 2. Ricerca Specifico Pezzo / Intervento -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">2. Cerca Pezzo o Ricambio</label>
@@ -135,7 +131,6 @@
                         <input type="text" id="partSearchInput" oninput="renderApp()" placeholder="es. Olio, Filtro, Pastiglie, Candela..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                 </div>
-
                 <!-- 3. Ricerca Generale (Data / Officina / Note) -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">3. Ricerca Libera (Data, Luogo, Km)</label>
@@ -172,6 +167,7 @@
             
             <form id="editForm" onsubmit="handleEditFormSubmit(event)">
                 <input type="hidden" id="editFirebaseId">
+                <input type="hidden" id="originalVehicleName">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Data *</label>
@@ -197,7 +193,6 @@
                         <input type="text" id="editSessionWorkshop" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
-
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-3">
                         <label class="text-sm font-bold text-slate-700">Pezzi Sostituiti & Interventi</label>
@@ -207,7 +202,6 @@
                     </div>
                     <div id="editTasksContainer" class="space-y-3"></div>
                 </div>
-
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
                     <button type="button" onclick="closeEditModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-xl transition text-sm">
                         Annulla
@@ -223,8 +217,8 @@
     <!-- Firebase Firestore Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyDq3cHTqec-Uzz6dGpgFAa-JNpjQWfWgUA",
             authDomain: "manutenzione-veicoli.firebaseapp.com",
@@ -237,7 +231,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let appData = [];
-
         const colRef = collection(db, "manutenzioni");
         const q = query(colRef, orderBy("date", "desc"));
 
@@ -249,7 +242,6 @@
                     ...docSnap.data()
                 });
             });
-
             const statusEl = document.getElementById('syncStatus');
             statusEl.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> Cloud Sincronizzato`;
             statusEl.className = "text-xs bg-emerald-950 text-emerald-300 px-3.5 py-1.5 rounded-full border border-emerald-800 flex items-center gap-2";
@@ -272,23 +264,18 @@
             const select = document.getElementById('vehicleFilter');
             const dataList = document.getElementById('vehicleSuggestions');
             const currentVal = select.value;
-
             const vehicles = [...new Set(appData.map(item => item.vehicle).filter(Boolean))].sort();
-
             select.innerHTML = '<option value="">Tutti i Veicoli</option>';
             dataList.innerHTML = '';
-
             vehicles.forEach(v => {
                 const opt = document.createElement('option');
                 opt.value = v;
                 opt.textContent = v;
                 select.appendChild(opt);
-
                 const dataOpt = document.createElement('option');
                 dataOpt.value = v;
                 dataList.appendChild(dataOpt);
             });
-
             select.value = currentVal;
         }
 
@@ -341,7 +328,7 @@
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Salvataggio...`;
-
+            
             const date = document.getElementById('sessionDate').value;
             const vehicle = document.getElementById('sessionVehicle').value.trim();
             const totalCost = parseFloat(document.getElementById('sessionTotalCost').value) || 0;
@@ -383,14 +370,14 @@
         window.openEditModal = function(firebaseId) {
             const session = appData.find(item => item.firebaseId === firebaseId);
             if (!session) return;
-
             document.getElementById('editFirebaseId').value = session.firebaseId;
+            document.getElementById('originalVehicleName').value = session.vehicle || '';
             document.getElementById('editSessionDate').value = session.date || '';
             document.getElementById('editSessionVehicle').value = session.vehicle || '';
             document.getElementById('editSessionTotalCost').value = session.totalCost || 0;
             document.getElementById('editSessionKm').value = session.km || '';
             document.getElementById('editSessionWorkshop').value = session.workshop === 'N.D.' ? '' : (session.workshop || '');
-
+            
             const container = document.getElementById('editTasksContainer');
             container.innerHTML = '';
             
@@ -399,7 +386,6 @@
             } else {
                 addEditTaskRow();
             }
-
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -432,10 +418,11 @@
         window.handleEditFormSubmit = async function(e) {
             e.preventDefault();
             const firebaseId = document.getElementById('editFirebaseId').value;
+            const originalVehicle = document.getElementById('originalVehicleName').value.trim();
             const updateBtn = document.getElementById('updateBtn');
             updateBtn.disabled = true;
             updateBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Aggiornamento...`;
-
+            
             const date = document.getElementById('editSessionDate').value;
             const vehicle = document.getElementById('editSessionVehicle').value.trim();
             const totalCost = parseFloat(document.getElementById('editSessionTotalCost').value) || 0;
@@ -459,6 +446,23 @@
             };
 
             try {
+                // Controlla se il nome del veicolo è stato modificato rispetto all'originale
+                if (originalVehicle && vehicle !== originalVehicle) {
+                    const matchingSessions = appData.filter(item => item.vehicle.toLowerCase() === originalVehicle.toLowerCase());
+                    if (matchingSessions.length > 1) {
+                        const confirmAll = confirm(`Hai cambiato il nome del veicolo da "${originalVehicle}" a "${vehicle}". Ci sono ${matchingSessions.length} schede registrate con il vecchio nome. Vuoi aggiornare il nome del veicolo su TUTTE queste schede?`);
+                        if (confirmAll) {
+                            const batch = writeBatch(db);
+                            matchingSessions.forEach(item => {
+                                const docRef = doc(db, "manutenzioni", item.firebaseId);
+                                batch.update(docRef, { vehicle: vehicle });
+                            });
+                            await batch.commit();
+                        }
+                    }
+                }
+
+                // Aggiorna la scheda corrente
                 await updateDoc(doc(db, "manutenzioni", firebaseId), updatedData);
                 closeEditModal();
             } catch (err) {
@@ -485,9 +489,9 @@
             const selectedVehicle = document.getElementById('vehicleFilter').value.toLowerCase();
             const partQuery = document.getElementById('partSearchInput').value.toLowerCase().trim();
             const generalQuery = document.getElementById('generalSearchInput').value.toLowerCase().trim();
-
             const listContainer = document.getElementById('sessionsList');
             const emptyState = document.getElementById('emptyState');
+            
             listContainer.innerHTML = '';
 
             const filteredSessions = appData.filter(session => {
@@ -495,13 +499,11 @@
                 if (selectedVehicle && session.vehicle.toLowerCase() !== selectedVehicle) {
                     return false;
                 }
-
                 // Filtro 2: Ricerca Pezzo
                 if (partQuery) {
                     const hasMatchingPart = session.tasks && session.tasks.some(t => t.name.toLowerCase().includes(partQuery));
                     if (!hasMatchingPart) return false;
                 }
-
                 // Filtro 3: Ricerca Generale
                 if (generalQuery) {
                     const matchGen = session.vehicle.toLowerCase().includes(generalQuery) ||
@@ -512,7 +514,6 @@
                     const matchTask = session.tasks && session.tasks.some(t => t.name.toLowerCase().includes(generalQuery));
                     if (!matchGen && !matchTask) return false;
                 }
-
                 return true;
             });
 
