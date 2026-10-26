@@ -6,111 +6,164 @@
     <title>Registro Manutenzione Auto e Moto</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .highlight-part {
+            background-color: #fef08a;
+            color: #854d0e;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
-    <!-- Navigazione Header -->
-    <header class="bg-slate-900 text-white shadow-lg mb-8">
-        <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-16">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-lg mb-8 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="p-3 bg-blue-600 rounded-xl text-2xl">
+                <div class="p-3 bg-blue-600 rounded-xl text-2xl shadow-md">
                     <i class="fa-solid fa-wrench"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Registro Manutenzione Auto</h1>
-                    <p class="text-slate-400 text-sm">Tieni traccia dei lavori e dei costi dei tuoi veicoli (Cloud Sync)</p>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Registro Manutenzione Veicoli</h1>
+                    <p class="text-slate-400 text-xs sm:text-sm">Tracciamento interventi, ricambi e gestione costi (Cloud Sync)</p>
                 </div>
             </div>
-            <!-- Indicatore Stato Cloud -->
-            <div id="syncStatus" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-circle-notch fa-spin text-blue-400"></i> Connessione Cloud...
+            <!-- Cloud Sync Badge -->
+            <div id="syncStatus" class="text-xs bg-slate-800 text-slate-300 px-3.5 py-1.5 rounded-full border border-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin text-blue-400"></i> Connessione Cloud in corso...
             </div>
         </div>
     </header>
 
-    <div class="max-w-6xl mx-auto px-4">
-        <!-- Modulo Nuova Giornata / Interventi -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <div class="max-w-6xl mx-auto px-4 space-y-8">
+
+        <!-- Form Nuova Giornata -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
                 <i class="fa-solid fa-circle-plus text-blue-600"></i> Registra Nuova Giornata di Lavoro
             </h2>
             <form id="sessionForm" onsubmit="handleFormSubmit(event)">
-                <!-- Info Generali della Sessione/Giornata -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Data *</label>
-                        <input type="date" id="sessionDate" required class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="date" id="sessionDate" required class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Veicolo *</label>
-                        <input type="text" id="sessionVehicle" placeholder="es. Peugeot 208 / Vespa 125" required class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="sessionVehicle" list="vehicleSuggestions" placeholder="es. Peugeot 208 / Vespa 125" required class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <datalist id="vehicleSuggestions"></datalist>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Costo Totale Giornata (€) *</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">€</span>
-                            <input type="number" step="0.01" min="0" id="sessionTotalCost" placeholder="0.00" required class="w-full pl-8 bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-semibold">€</span>
+                            <input type="number" step="0.01" min="0" id="sessionTotalCost" placeholder="0.00" required class="w-full pl-8 bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none transition">
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Chilometraggio (Km)</label>
-                        <input type="number" id="sessionKm" placeholder="es. 85000" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="number" id="sessionKm" placeholder="es. 85000" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Officina / Luogo</label>
-                        <input type="text" id="sessionWorkshop" placeholder="es. Fai-da-te / Officina Rossi" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="sessionWorkshop" placeholder="es. Fai-da-te / Garage / Officina Rossi" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                 </div>
 
-                <!-- Elenco Dettaglio Pezzi / Interventi per questa giornata -->
+                <!-- Lista Pezzi / Lavori -->
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-3">
-                        <label class="text-sm font-bold text-slate-700">Pezzi Sostituiti e Interventi Effettuati in Questa Giornata <span class="text-xs font-normal text-slate-500">(Premi Invio per aggiungere un altro pezzo)</span></label>
-                        <button type="button" onclick="addTaskRow()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1">
-                            <i class="fa-solid fa-plus text-blue-600"></i> Aggiungi Altro Pezzo
+                        <label class="text-sm font-bold text-slate-700">Pezzi Sostituiti & Interventi <span class="text-xs font-normal text-slate-500">(Premere Invio per un nuovo pezzo)</span></label>
+                        <button type="button" onclick="addTaskRow()" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Aggiungi Pezzo
                         </button>
                     </div>
-                    <div id="tasksContainer" class="space-y-3">
-                        <!-- Le righe degli interventi verranno inserite qui dinamicamente -->
-                    </div>
+                    <div id="tasksContainer" class="space-y-3"></div>
                 </div>
 
                 <div class="flex justify-end pt-4 border-t border-slate-200">
-                    <button type="submit" id="submitBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg transition shadow-md flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Salva Intera Giornata
+                    <button type="submit" id="submitBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Salva Giornata
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Sezione Barra di Ricerca -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-slate-800">Elenco Interventi</h2>
-            <div class="relative w-full max-w-xs">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-                <input type="text" id="searchInput" oninput="renderApp()" placeholder="Cerca veicolo, pezzo, data..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <!-- Sezione Filtri e Ricerca Separatizzata -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <div class="flex items-center gap-2 text-slate-800 font-bold text-lg">
+                    <i class="fa-solid fa-filter text-blue-600"></i> Filtra e Cerca Interventi
+                </div>
+                <button onclick="resetFilters()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-3 py-1.5 rounded-lg border border-slate-300 transition self-start md:self-auto flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-left"></i> Azzera Filtri
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- 1. Selezione Veicolo -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">1. Seleziona Veicolo</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-car absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <select id="vehicleFilter" onchange="renderApp()" class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none">
+                            <option value="">Tutti i Veicoli</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-slate-400 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- 2. Ricerca Specifico Pezzo / Intervento -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">2. Cerca Pezzo o Ricambio</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-gears absolute left-3 top-3 text-blue-500 text-sm"></i>
+                        <input type="text" id="partSearchInput" oninput="renderApp()" placeholder="es. Olio, Filtro, Pastiglie, Candela..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- 3. Ricerca Generale (Data / Officina / Note) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">3. Ricerca Libera (Data, Luogo, Km)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="generalSearchInput" oninput="renderApp()" placeholder="Cerca per data, officina o costo..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Contenitore Schede Giornate -->
-        <div id="sessionsList" class="space-y-4">
-            <!-- Inserito dinamicamente tramite JavaScript -->
-        </div>
+        <!-- Elenco Schede Interventi -->
+        <div id="sessionsList" class="space-y-4"></div>
 
-        <!-- Stato Vuoto -->
-        <div id="emptyState" class="hidden bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center">
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center">
             <div class="text-slate-300 text-5xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
             <h3 class="text-slate-700 font-bold text-lg">Nessun intervento trovato</h3>
-            <p class="text-slate-500 text-sm mt-1">Non ci sono registrazioni corrispondenti alla tua ricerca o il registro è vuoto.</p>
+            <p class="text-slate-500 text-sm mt-1">Nessuna registrazione corrisponde ai filtri di ricerca impostati.</p>
         </div>
     </div>
 
-    <!-- Modal per la Modifica della Giornata -->
+    <!-- Modale Modifica -->
     <div id="editModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 p-6">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-blue-600"></i> Modifica Giornata di Lavoro
+                    <i class="fa-solid fa-pen-to-square text-blue-600"></i> Modifica Giornata
                 </h3>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -131,7 +184,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Costo Totale (€) *</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">€</span>
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-semibold">€</span>
                             <input type="number" step="0.01" min="0" id="editSessionTotalCost" required class="w-full pl-8 bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
@@ -147,34 +200,31 @@
 
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-3">
-                        <label class="text-sm font-bold text-slate-700">Pezzi Sostituiti e Interventi Effettuati <span class="text-xs font-normal text-slate-500">(Premi Invio per aggiungere)</span></label>
-                        <button type="button" onclick="addEditTaskRow()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1">
-                            <i class="fa-solid fa-plus text-blue-600"></i> Aggiungi Altro Pezzo
+                        <label class="text-sm font-bold text-slate-700">Pezzi Sostituiti & Interventi</label>
+                        <button type="button" onclick="addEditTaskRow()" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Aggiungi Pezzo
                         </button>
                     </div>
-                    <div id="editTasksContainer" class="space-y-3">
-                        <!-- Le righe da modificare verranno aggiunte qui -->
-                    </div>
+                    <div id="editTasksContainer" class="space-y-3"></div>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
-                    <button type="button" onclick="closeEditModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg transition text-sm">
+                    <button type="button" onclick="closeEditModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-xl transition text-sm">
                         Annulla
                     </button>
-                    <button type="submit" id="updateBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition shadow-md text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Aggiorna Modifiche
+                    <button type="submit" id="updateBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-xl transition shadow-md text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Salva Modifiche
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Firebase SDKs (Modulari v10) -->
+    <!-- Firebase Firestore Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Configurazione Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDq3cHTqec-Uzz6dGpgFAa-JNpjQWfWgUA",
             authDomain: "manutenzione-veicoli.firebaseapp.com",
@@ -184,16 +234,13 @@
             appId: "1:505797362046:web:7472f2b722c45b0ab0732f"
         };
 
-        // Inizializzazione Firebase & Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let appData = [];
 
-        // Riferimento alla collezione "manutenzioni" su Firestore
         const colRef = collection(db, "manutenzioni");
-
-        // Connessione in tempo reale con Firestore
         const q = query(colRef, orderBy("date", "desc"));
+
         onSnapshot(q, (snapshot) => {
             appData = [];
             snapshot.forEach((docSnap) => {
@@ -203,32 +250,62 @@
                 });
             });
 
-            // Aggiorna indicatore di stato
             const statusEl = document.getElementById('syncStatus');
             statusEl.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> Cloud Sincronizzato`;
-            statusEl.className = "text-xs bg-emerald-950 text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-800 flex items-center gap-2";
+            statusEl.className = "text-xs bg-emerald-950 text-emerald-300 px-3.5 py-1.5 rounded-full border border-emerald-800 flex items-center gap-2";
+            
+            updateVehicleFilterOptions();
             renderApp();
         }, (error) => {
-            console.error("Errore di connessione Firestore: ", error);
+            console.error("Errore connessione Cloud: ", error);
             const statusEl = document.getElementById('syncStatus');
-            statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Errore connessione Cloud`;
-            statusEl.className = "text-xs bg-red-950 text-red-300 px-3 py-1.5 rounded-lg border border-red-800 flex items-center gap-2";
+            statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Errore Cloud`;
+            statusEl.className = "text-xs bg-red-950 text-red-300 px-3.5 py-1.5 rounded-full border border-red-800 flex items-center gap-2";
         });
 
-        // Inizializzazione pagina
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('sessionDate').valueAsDate = new Date();
             addTaskRow();
         });
 
-        // Aggiunge una riga per inserire un singolo pezzo/lavoro nel form principale
+        window.updateVehicleFilterOptions = function() {
+            const select = document.getElementById('vehicleFilter');
+            const dataList = document.getElementById('vehicleSuggestions');
+            const currentVal = select.value;
+
+            const vehicles = [...new Set(appData.map(item => item.vehicle).filter(Boolean))].sort();
+
+            select.innerHTML = '<option value="">Tutti i Veicoli</option>';
+            dataList.innerHTML = '';
+
+            vehicles.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = v;
+                select.appendChild(opt);
+
+                const dataOpt = document.createElement('option');
+                dataOpt.value = v;
+                dataList.appendChild(dataOpt);
+            });
+
+            select.value = currentVal;
+        }
+
+        window.resetFilters = function() {
+            document.getElementById('vehicleFilter').value = '';
+            document.getElementById('partSearchInput').value = '';
+            document.getElementById('generalSearchInput').value = '';
+            renderApp();
+        }
+
         window.addTaskRow = function(name = '') {
             const container = document.getElementById('tasksContainer');
             const div = document.createElement('div');
             div.className = 'flex items-center gap-2 task-row';
             div.innerHTML = `
-                <input type="text" placeholder="es. Cambio Olio / Filtro Aria / Pastiglie Freni" value="${name}" required class="task-name flex-1 bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" onkeydown="handleTaskKeyDown(event, 'main')">
-                <button type="button" onclick="removeTaskRow(this)" class="p-2 text-slate-400 hover:text-red-500 rounded-lg transition">
+                <input type="text" placeholder="es. Cambio Olio / Filtro Aria / Pastiglie Freni" value="${name}" required class="task-name flex-1 bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" onkeydown="handleTaskKeyDown(event, 'main')">
+                <button type="button" onclick="removeTaskRow(this)" class="p-2.5 text-slate-400 hover:text-red-500 rounded-lg transition">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             `;
@@ -240,50 +317,42 @@
             if (container.querySelectorAll('.task-row').length > 1) {
                 btn.closest('.task-row').remove();
             } else {
-                alert('La giornata deve contenere almeno un pezzo o intervento.');
+                alert('Inserisci almeno un pezzo o intervento.');
             }
         }
 
-        // Gestione pressione tasto Invio (Enter) per creare un nuovo campo pezzo
         window.handleTaskKeyDown = function(e, mode) {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Previene il submit del form
+                e.preventDefault();
                 if (mode === 'main') {
                     addTaskRow();
                     const inputs = document.querySelectorAll('#tasksContainer .task-name');
-                    if (inputs.length > 0) {
-                        inputs[inputs.length - 1].focus();
-                    }
+                    if (inputs.length > 0) inputs[inputs.length - 1].focus();
                 } else if (mode === 'edit') {
                     addEditTaskRow();
                     const inputs = document.querySelectorAll('#editTasksContainer .edit-task-name');
-                    if (inputs.length > 0) {
-                        inputs[inputs.length - 1].focus();
-                    }
+                    if (inputs.length > 0) inputs[inputs.length - 1].focus();
                 }
             }
         }
 
-        // Salva l'intera giornata su Firebase Firestore
         window.handleFormSubmit = async function(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Salvataggio in corso...`;
+            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Salvataggio...`;
 
             const date = document.getElementById('sessionDate').value;
-            const vehicle = document.getElementById('sessionVehicle').value;
+            const vehicle = document.getElementById('sessionVehicle').value.trim();
             const totalCost = parseFloat(document.getElementById('sessionTotalCost').value) || 0;
             const km = document.getElementById('sessionKm').value;
-            const workshop = document.getElementById('sessionWorkshop').value;
+            const workshop = document.getElementById('sessionWorkshop').value.trim();
             
             const taskRows = document.querySelectorAll('#tasksContainer .task-row');
             const tasks = [];
             taskRows.forEach(row => {
                 const name = row.querySelector('.task-name').value;
-                if (name.trim()) {
-                    tasks.push({ name: name.trim() });
-                }
+                if (name.trim()) tasks.push({ name: name.trim() });
             });
 
             const newSession = {
@@ -298,21 +367,19 @@
 
             try {
                 await addDoc(colRef, newSession);
-                // Reset form
                 document.getElementById('sessionForm').reset();
                 document.getElementById('sessionDate').valueAsDate = new Date();
                 document.getElementById('tasksContainer').innerHTML = '';
                 addTaskRow();
             } catch (err) {
                 console.error("Errore durante il salvataggio: ", err);
-                alert("Errore durante il salvataggio su Cloud. Controlla la connessione.");
+                alert("Si è verificato un errore durante il salvataggio.");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salva Intera Giornata`;
+                submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salva Giornata`;
             }
         }
 
-        // Funzioni per la modale di Modifica
         window.openEditModal = function(firebaseId) {
             const session = appData.find(item => item.firebaseId === firebaseId);
             if (!session) return;
@@ -345,8 +412,8 @@
             const div = document.createElement('div');
             div.className = 'flex items-center gap-2 edit-task-row';
             div.innerHTML = `
-                <input type="text" placeholder="es. Cambio Olio / Filtro Aria / Pastiglie Freni" value="${name}" required class="edit-task-name flex-1 bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" onkeydown="handleTaskKeyDown(event, 'edit')">
-                <button type="button" onclick="removeEditTaskRow(this)" class="p-2 text-slate-400 hover:text-red-500 rounded-lg transition">
+                <input type="text" placeholder="es. Cambio Olio / Filtro Aria" value="${name}" required class="edit-task-name flex-1 bg-white border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" onkeydown="handleTaskKeyDown(event, 'edit')">
+                <button type="button" onclick="removeEditTaskRow(this)" class="p-2.5 text-slate-400 hover:text-red-500 rounded-lg transition">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             `;
@@ -358,7 +425,7 @@
             if (container.querySelectorAll('.edit-task-row').length > 1) {
                 btn.closest('.edit-task-row').remove();
             } else {
-                alert('La giornata deve contenere almeno un pezzo o intervento.');
+                alert('Inserisci almeno un pezzo o intervento.');
             }
         }
 
@@ -370,18 +437,16 @@
             updateBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Aggiornamento...`;
 
             const date = document.getElementById('editSessionDate').value;
-            const vehicle = document.getElementById('editSessionVehicle').value;
+            const vehicle = document.getElementById('editSessionVehicle').value.trim();
             const totalCost = parseFloat(document.getElementById('editSessionTotalCost').value) || 0;
             const km = document.getElementById('editSessionKm').value;
-            const workshop = document.getElementById('editSessionWorkshop').value;
+            const workshop = document.getElementById('editSessionWorkshop').value.trim();
             
             const taskRows = document.querySelectorAll('#editTasksContainer .edit-task-row');
             const tasks = [];
             taskRows.forEach(row => {
                 const name = row.querySelector('.edit-task-name').value;
-                if (name.trim()) {
-                    tasks.push({ name: name.trim() });
-                }
+                if (name.trim()) tasks.push({ name: name.trim() });
             });
 
             const updatedData = {
@@ -397,42 +462,58 @@
                 await updateDoc(doc(db, "manutenzioni", firebaseId), updatedData);
                 closeEditModal();
             } catch (err) {
-                console.error("Errore durante la modifica: ", err);
-                alert("Errore durante l'aggiornamento su Cloud.");
+                console.error("Errore modifica: ", err);
+                alert("Errore durante la modifica.");
             } finally {
                 updateBtn.disabled = false;
-                updateBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Aggiorna Modifiche`;
+                updateBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salva Modifiche`;
             }
         }
 
-        // Elimina intera giornata da Firebase
         window.deleteSession = async function(firebaseId) {
-            if (confirm("Sei sicuro di voler eliminare interamente questa giornata e tutti i suoi interventi dal Cloud?")) {
+            if (confirm("Vuoi eliminare questa giornata di lavoro e tutti i suoi interventi dal Cloud?")) {
                 try {
                     await deleteDoc(doc(db, "manutenzioni", firebaseId));
                 } catch (err) {
-                    console.error("Errore durante l'eliminazione: ", err);
+                    console.error("Errore eliminazione: ", err);
                     alert("Errore durante l'eliminazione.");
                 }
             }
         }
 
-        // Rendering dell'applicazione nella pagina
         window.renderApp = function() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const selectedVehicle = document.getElementById('vehicleFilter').value.toLowerCase();
+            const partQuery = document.getElementById('partSearchInput').value.toLowerCase().trim();
+            const generalQuery = document.getElementById('generalSearchInput').value.toLowerCase().trim();
+
             const listContainer = document.getElementById('sessionsList');
             const emptyState = document.getElementById('emptyState');
             listContainer.innerHTML = '';
 
             const filteredSessions = appData.filter(session => {
-                if (!query) return true;
-                const matchGen = session.vehicle.toLowerCase().includes(query) ||
-                                 session.date.includes(query) ||
-                                 (session.workshop && session.workshop.toLowerCase().includes(query)) ||
-                                 (session.km && session.km.toString().includes(query)) ||
-                                 (session.totalCost && session.totalCost.toString().includes(query));
-                const matchTask = session.tasks && session.tasks.some(t => t.name.toLowerCase().includes(query));
-                return matchGen || matchTask;
+                // Filtro 1: Veicolo Selezionato
+                if (selectedVehicle && session.vehicle.toLowerCase() !== selectedVehicle) {
+                    return false;
+                }
+
+                // Filtro 2: Ricerca Pezzo
+                if (partQuery) {
+                    const hasMatchingPart = session.tasks && session.tasks.some(t => t.name.toLowerCase().includes(partQuery));
+                    if (!hasMatchingPart) return false;
+                }
+
+                // Filtro 3: Ricerca Generale
+                if (generalQuery) {
+                    const matchGen = session.vehicle.toLowerCase().includes(generalQuery) ||
+                                     session.date.includes(generalQuery) ||
+                                     (session.workshop && session.workshop.toLowerCase().includes(generalQuery)) ||
+                                     (session.km && session.km.toString().includes(generalQuery)) ||
+                                     (session.totalCost && session.totalCost.toString().includes(generalQuery));
+                    const matchTask = session.tasks && session.tasks.some(t => t.name.toLowerCase().includes(generalQuery));
+                    if (!matchGen && !matchTask) return false;
+                }
+
+                return true;
             });
 
             if (filteredSessions.length === 0) {
@@ -441,49 +522,57 @@
                 emptyState.classList.add('hidden');
                 filteredSessions.forEach(session => {
                     const card = document.createElement('div');
-                    card.className = 'bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:border-slate-300 transition';
+                    card.className = 'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-slate-300 transition';
                     
-                    let tasksHtml = session.tasks ? session.tasks.map(task => `
-                        <div class="flex justify-between items-center py-2 px-3 bg-slate-50 rounded-lg text-sm mb-1.5 last:mb-0 border border-slate-100">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-wrench text-xs text-blue-500"></i>
-                                <span class="font-medium text-slate-700">${task.name}</span>
+                    let tasksHtml = session.tasks ? session.tasks.map(task => {
+                        let displayName = task.name;
+                        if (partQuery && task.name.toLowerCase().includes(partQuery)) {
+                            const regExp = new RegExp(`(${partQuery})`, 'gi');
+                            displayName = task.name.replace(regExp, `<mark class="highlight-part">$1</mark>`);
+                        }
+                        return `
+                            <div class="flex justify-between items-center py-2 px-3.5 bg-slate-50 rounded-xl text-sm border border-slate-100">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-wrench text-xs text-blue-500"></i>
+                                    <span class="font-medium text-slate-700">${displayName}</span>
+                                </div>
                             </div>
-                        </div>
-                    `).join('') : '';
+                        `;
+                    }).join('') : '';
 
                     card.innerHTML = `
-                        <div class="p-5">
-                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                        <div class="p-5 sm:p-6">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4 pb-4 border-b border-slate-100">
                                 <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">${session.vehicle}</span>
-                                        <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar"></i> ${session.date}</span>
-                                        ${session.km ? `<span class="text-xs text-slate-400"><i class="fa-solid fa-gauge"></i> ${session.km.toLocaleString()} Km</span>` : ''}
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700">${session.vehicle}</span>
+                                        <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-regular fa-calendar"></i> ${session.date}</span>
+                                        ${session.km ? `<span class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-solid fa-gauge"></i> ${session.km.toLocaleString()} Km</span>` : ''}
                                     </div>
-                                    <div class="text-xs text-slate-500 mt-1">
+                                    <div class="text-xs text-slate-500">
                                         Officina/Luogo: <span class="font-medium text-slate-700">${session.workshop}</span>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="text-right">
-                                        <div class="text-xs text-slate-400 uppercase font-semibold">Costo Totale Speso</div>
-                                        <div class="text-lg font-bold text-emerald-600">€ ${(session.totalCost || 0).toFixed(2)}</div>
+                                <div class="flex items-center justify-between sm:justify-end gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                                    <div class="text-left sm:text-right">
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Costo Totale</div>
+                                        <div class="text-xl font-black text-emerald-600">€ ${(session.totalCost || 0).toFixed(2)}</div>
                                     </div>
-                                    <div class="flex items-center gap-1 ml-2">
-                                        <button onclick="openEditModal('${session.firebaseId}')" title="Modifica giornata e pezzi" class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="openEditModal('${session.firebaseId}')" title="Modifica" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </button>
-                                        <button onclick="deleteSession('${session.firebaseId}')" title="Elimina intera giornata" class="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                        <button onclick="deleteSession('${session.firebaseId}')" title="Elimina" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Lista Pezzi Sostituiti -->
-                            <div class="mt-3">
-                                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Pezzi Sostituiti / Interventi Effettuati:</div>
-                                ${tasksHtml}
+                            <div>
+                                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Pezzi Sostituiti / Interventi Effettuati (${session.tasks ? session.tasks.length : 0})</div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    ${tasksHtml}
+                                </div>
                             </div>
                         </div>
                     `;
